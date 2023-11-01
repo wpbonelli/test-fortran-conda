@@ -40,7 +40,7 @@ jobs:
           version: '13'
         if: ${{ !matrix.use_ifort }}        
       
-      - name: Setup Mambaforge
+      - name: Setup Mambaforge conda
         uses: conda-incubator/setup-miniconda@v2
         with:
           miniforge-variant: Mambaforge
@@ -61,12 +61,12 @@ jobs:
           key: conda-${{ steps.get-date.outputs.today }}--${{ matrix.python-version }}--${{ runner.os }}--${{ runner.arch }}--${{ env.CACHE_NUMBER }}--${{ hashFiles('exorad/ci/environment.yml') }}           
         id: cache_conda
 
-      - name: Update environment
+      - name: Update conda environment
         run: mamba env update -n test_env -f ci/environment.yml
         if: steps.cache_conda.outputs.cache-hit != 'true'      
         id: update-env
 
-      - name: Set up exorad_opac
+      - name: Set up python pkg with f2py
         shell: bash -l {0}
         working-directory: min_python_pkg
         run: |
