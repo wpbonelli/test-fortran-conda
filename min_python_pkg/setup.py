@@ -13,8 +13,7 @@ except ImportError:
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
-simple = Extension('min_python_pkg.simple', sources=['min_python_pkg/simple_routine.f90'],
-                                  extra_compile_args=["-O3", "-funroll-loops", "-ftree-vectorize", "-msse", "-msse2", "-m3dnow"])
+simple = Extension('min_python_pkg.simple', sources=['min_python_pkg/simple_routine.f90'])
 
 setup(
     name='min_python_pkg',
