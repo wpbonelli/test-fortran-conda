@@ -1,0 +1,16 @@
+#!/usr/bin/python
+
+"""
+A Command line script that creates k-tables for exorad
+"""
+from min_python_pkg import simple_add
+
+################
+# Default values
+################
+
+# Runtime Arguments:
+a = 1
+b = 2 
+
+print(simple_add(a,b))

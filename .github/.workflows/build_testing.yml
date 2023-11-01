@@ -1,0 +1,84 @@
+name: build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+env:
+  CACHE_NUMBER: 1  # increase to reset anaconda and intel cache manually
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    name: "ifort? ${{ matrix.use_ifort }}"
+    continue-on-error: true
+
+    strategy:
+      matrix:
+        python-version: [ "3.10" ]
+        use_ifort: [ false , true ]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup intel compilers
+        uses: fortran-lang/setup-fortran@v1
+        id: setup-ifort
+        with:
+          compiler: 'intel-classic'
+          version: '2021.10'
+        if: ${{ matrix.use_ifort }}
+      
+      - name: Setup gcc compilers
+        uses: fortran-lang/setup-fortran@v1
+        id: setup-gfortran
+        with:
+          compiler: 'gcc'
+          version: '13'
+        if: ${{ !matrix.use_ifort }}        
+      
+      - name: Setup Mambaforge
+        uses: conda-incubator/setup-miniconda@v2
+        with:
+          miniforge-variant: Mambaforge
+          miniforge-version: latest
+          use-mamba: true
+          activate-environment: test_env  # Defined in ci/environment*.yml
+          python-version: ${{ matrix.python-version }}
+      
+      - name: Get Date
+        id: get-date
+        run: echo "today=$(/bin/date -u '+%Y%m%d')" >> $GITHUB_OUTPUT
+        shell: bash
+
+      - name: Cache conda
+        uses: actions/cache@v2
+        with:
+          path: ${{ env.CONDA }}/envs
+          key: conda-${{ steps.get-date.outputs.today }}--${{ matrix.python-version }}--${{ runner.os }}--${{ runner.arch }}--${{ env.CACHE_NUMBER }}--${{ hashFiles('exorad/ci/environment.yml') }}           
+        id: cache_conda
+
+      - name: Update environment
+        run: mamba env update -n test_env -f ci/environment.yml
+        if: steps.cache_conda.outputs.cache-hit != 'true'      
+        id: update-env
+
+      - name: Set up exorad_opac
+        shell: bash -l {0}
+        working-directory: min_python_pkg
+        run: |
+          python -m pip install .
+          conda list
+        id: install-pkg
+
+      - name: do_simple
+        shell: bash -l {0}
+        run: do_simple
+
+
+        
+  
+          
