@@ -70,7 +70,12 @@ jobs:
         shell: bash -l {0}
         working-directory: min_python_pkg
         run: |
-          python -m pip install .
+          if [ "$FC" == ifort ]; then
+            python setup.py build --fcompiler=intelem
+            python setup.py install --skip-build
+          else
+            python -m pip install .
+          fi
           conda list
         id: install-pkg
 
